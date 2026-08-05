@@ -322,6 +322,13 @@ export class CodexSecurity {
       await realpath(tmpdir()),
       "temporary",
     );
+    if (options.knowledgeBasePaths?.length) {
+      const knowledgeBase = await prepareKnowledgeBase(
+        options.knowledgeBasePaths,
+        options.signal,
+      );
+      await knowledgeBase.cleanup();
+    }
     const configuration = await mergedCodexConfig(this.config);
     const model = scanModelConfiguration(configuration);
     validateScanCostLimit(options.maxCostUsd, model.model);

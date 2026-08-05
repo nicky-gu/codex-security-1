@@ -847,9 +847,13 @@ describe("CodexSecurity orchestration", () => {
     const repository = join(root, "repository");
     const knowledgeBase = join(root, "threat-model.md");
     const invalidDocument = join(root, "broken.pdf");
+    const unsupportedDocument = join(root, "unsupported.exe");
+    const emptyDirectory = join(root, "empty");
     await mkdir(repository);
+    await mkdir(emptyDirectory);
     await writeFile(knowledgeBase, "# Threat model\nPublic API is in scope.\n");
     await writeFile(invalidDocument, "not a PDF");
+    await writeFile(unsupportedDocument, "not a supported document");
     let runtimeStarted = false;
     const client = new TestClient(
       {},
@@ -865,6 +869,28 @@ describe("CodexSecurity orchestration", () => {
     await expect(
       client.preflight(repository, { knowledgeBasePaths: [knowledgeBase] }),
     ).resolves.toMatchObject({ knowledgeBasePaths: [knowledgeBase] });
+    const invalidDocuments: Array<[string, string]> = [
+      [join(root, "missing.md"), "ENOENT"],
+      [unsupportedDocument, "Unsupported knowledge base document"],
+      [invalidDocument, "Cannot extract text from knowledge base PDF"],
+      [
+        emptyDirectory,
+        "Knowledge base directory contains no supported documents",
+      ],
+    ];
+    if (process.platform !== "win32") {
+      const linkedDocument = join(root, "linked.md");
+      await symlink(knowledgeBase, linkedDocument);
+      invalidDocuments.push([
+        linkedDocument,
+        "Knowledge base paths cannot be symbolic links",
+      ]);
+    }
+    for (const [path, message] of invalidDocuments) {
+      await expect(
+        client.preflight(repository, { knowledgeBasePaths: [path] }),
+      ).rejects.toThrow(message);
+    }
     await expect(
       client.run(repository, {
         knowledgeBasePaths: [join(root, "missing.md")],
