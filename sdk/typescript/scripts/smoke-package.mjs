@@ -404,5 +404,10 @@ try {
     `Validated installed ${packageManifest.name}@${packageManifest.version}: public import, CLI, ${expectedPluginFiles.length} bundled plugin files, bundled Codex version, and a nested worker without global codex.`,
   );
 } finally {
-  await rm(consumer, { recursive: true, force: true });
+  await rm(consumer, {
+    recursive: true,
+    force: true,
+    maxRetries: 10,
+    retryDelay: 100,
+  });
 }
