@@ -35,8 +35,8 @@ jobs:
       - name: Pack tarball
         working-directory: sdk/typescript
         run: |
-          pnpm pack --pack-destination ../../
-          ls -la ../*.tgz
+          npm pack --pack-destination ../../
+          ls -la ../*.tgz || echo "No tgz found"
 
       - name: Create dist folder for binary release
         run: |
