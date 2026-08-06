@@ -33,7 +33,16 @@ npx @openai/codex-security scan . --provider openrouter --model anthropic/claude
 
 export FIREWORKS_API_KEY="<your-fireworks-api-key>"
 npx @openai/codex-security scan . --provider fireworks --model accounts/fireworks/models/qwen3-235b-a22b
+```
 
+To use Alibaba Cloud Bailian (DashScope), set its API key and select a model:
+
+```bash
+export DASHSCOPE_API_KEY="<your-dashscope-api-key>"
+npx @openai/codex-security scan . --provider alibaba-bailian --model qwen-plus
+```
+
+```bash
 export AWS_BEARER_TOKEN_BEDROCK="<your-bedrock-api-key>"
 export AWS_REGION="us-east-2"
 npx @openai/codex-security scan . --provider amazon-bedrock --model openai.gpt-5.6-luna

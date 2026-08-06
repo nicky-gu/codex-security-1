@@ -2252,7 +2252,8 @@ function environmentApiKeyEntry(
     | "OPENAI_API_KEY"
     | "CODEX_API_KEY"
     | "OPENROUTER_API_KEY"
-    | "FIREWORKS_API_KEY";
+    | "FIREWORKS_API_KEY"
+    | "DASHSCOPE_API_KEY";
   value: string;
 } | null {
   const keys = isExternalModelProvider(modelProvider)
