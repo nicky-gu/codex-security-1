@@ -23,11 +23,11 @@ jobs:
         with:
           node-version: "22.13.0"
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@11.9.0 --activate
+      - name: Set up pnpm
+        run: npm install -g pnpm@9
 
       - name: Install dependencies
-        run: pnpm --dir sdk/typescript install --frozen-lockfile
+        run: pnpm --dir sdk/typescript install --no-frozen-lockfile
 
       - name: Build
         run: pnpm --dir sdk/typescript run build
