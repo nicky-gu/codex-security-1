@@ -1,0 +1,90 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@11.9.0 --activate
+
+      - name: Install dependencies
+        run: pnpm --dir sdk/typescript install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --dir sdk/typescript run build
+
+      - name: Pack tarball
+        working-directory: sdk/typescript
+        run: |
+          pnpm pack --pack-destination ../../
+          ls -la ../*.tgz
+
+      - name: Create dist folder for binary release
+        run: |
+          mkdir -p release
+          cp -r sdk/typescript/dist release/
+          cp -r sdk/typescript/bin release/
+          cp -r sdk/typescript/_bundled_plugin release/
+          cp sdk/typescript/package.json release/
+          cp sdk/typescript/LICENSE release/
+
+      - name: Create tarball
+        run: tar -czf codex-security-bailian.tar.gz -C release .
+
+      - name: Determine version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./sdk/typescript/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || format('v{0}', steps.version.outputs.version) }}
+          name: Codex Security with Bailian Support v${{ steps.version.outputs.version }}
+          body: |
+            ## Codex Security with Alibaba Cloud Bailian (DashScope) Support
+
+            ### 安装
+
+            **Windows (npm tarball):**
+            ```bash
+            npm install -g @openai/codex-security-0.1.6.tgz
+            ```
+
+            **Windows (二进制包):**
+            下载 `codex-security-bailian.tar.gz`，解压后：
+            ```bash
+            npm install --production
+            node bin\codex-security.mjs scan . --provider alibaba-bailian --model qwen-plus
+            ```
+
+            ### 使用百炼
+            ```bash
+            set DASHSCOPE_API_KEY=<your-key>
+            codex-security scan . --provider alibaba-bailian --model qwen-plus
+            ```
+          files: |
+            *.tgz
+            codex-security-bailian.tar.gz
+          draft: false
+          prerelease: false
